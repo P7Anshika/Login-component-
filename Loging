@@ -1,0 +1,165 @@
+// Login.js
+import React, { useState, useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { Container, Row, Col, Form } from 'react-bootstrap';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import axios from 'axios';
+import "react-toastify/dist/ReactToastify.css";
+import Button from './Components/Button';
+import apiBaseUrl from './Components/ApiBaseUrl';
+
+class LoginException extends Error {
+  constructor(message, userFriendlyMessage = 'Login failed. Please try again.') {
+    super(message);
+    this.name = this.constructor.name;
+    this.userFriendlyMessage = userFriendlyMessage;
+  }
+}
+
+class NetworkException extends LoginException {
+  constructor() {
+    super('Network error occurred', 'Network unavailable. Please check your connection.');
+  }
+}
+
+class AuthenticationException extends LoginException {
+  constructor(message, field = null) {
+    super(message, message); 
+    this.field = field;
+  }
+}
+
+function Login() {
+  const { register, handleSubmit, formState: { errors, isDirty, isValid }, reset } = useForm({ mode: 'onChange' });
+  const [loginError, setLoginError] = useState(null);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const location = useLocation();
+  const toastIdRef = useRef(null);
+
+  const onSubmit = async (data) => {
+    setIsLoading(true);
+    setLoginError(null);
+    setFieldErrors({});
+
+    try {
+      // Sending plaintext password as API requires
+      const response = await axios.post(
+        `${apiBaseUrl}/terragate/v1/auth/login`,
+        {
+          username: data.username,
+          password: data.password // Plaintext for API
+        },
+        {
+          headers: { 'Content-Type': 'application/json' },
+          timeout: 10000
+        }
+      );
+
+      if (response.data.status === 200) {
+        toast.success('Logged in successfully');
+        sessionStorage.setItem('isLoggedIn', true);
+        sessionStorage.setItem('userData', JSON.stringify(data));
+        
+        const from = location.state?.from?.pathname || '/dashboard';
+        setTimeout(() => navigate(from, { replace: true }), 1000);
+      } else {
+        throw new Error(response.data.message || 'Login failed');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          setLoginError('Invalid username or password');
+        } else {
+          setLoginError(error.response.data?.message || 'Login failed');
+        }
+      } else if (error.request) {
+        setLoginError('Network error. Please check your connection');
+      } else {
+        setLoginError('An unexpected error occurred');
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Container className="mt-5">
+      <Row className="justify-content-md-center">
+        <Col xs={12} md={6} className="bg-white shadow-md rounded p-4">
+          <h2 className="text-center mb-4">Login</h2>
+          <Form onSubmit={handleSubmit(onSubmit)} noValidate>
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control 
+                type="text"
+                placeholder="Enter username"
+                {...register("username", { 
+                  required: "Username is required",
+                  minLength: {
+                    value: 3, 
+                    message: 'Username must be at least 3 characters'
+                  }
+                })}
+                isInvalid={!!errors.username}
+              />
+              <Form.Control.Feedback type="invalid">
+                {errors.username?.message}
+              </Form.Control.Feedback>
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control
+                type={showPassword ? "text" : "password"}
+                placeholder="Password"
+                {...register("password", {
+                  required: "Password is required",
+                  minLength: { 
+                    value: 8, 
+                    message: "Password must be at least 8 characters" 
+                  }
+                })}
+                isInvalid={!!errors.password}
+              />
+              <Form.Check
+                type="switch"
+                label="Show password"
+                checked={showPassword}
+                onChange={() => setShowPassword(!showPassword)}
+              />
+            </Form.Group>
+
+            {loginError && (
+              <div className='alert alert-danger'>
+                {loginError}
+              </div>
+            )}
+
+            <Button 
+              variant="primary" 
+              type="submit" 
+              disabled={isLoading || !isDirty || !isValid}
+              className="w-100"
+            >
+              {isLoading ? 'Logging in...' : 'Login'}
+            </Button>
+
+            <div className="mt-3 text-center">
+              <Link to="/register">Create an account</Link> | <Link to="/forgot-password">Forgot password?</Link>
+            </div>
+          </Form>
+        </Col>
+      </Row>
+      <ToastContainer position='top-center' />
+    </Container>
+  );
+}
+
+export default Login;
