@@ -1,0 +1,282 @@
+import
+React, (useState)
+from
+"react";
+import
+{useForm}, from react-hook-form';
+import
+axios from 'axios';
+import
+apiBaseUrl from
+• /Components/ApiBaseUrl';
+import
+{ useNavigate } from react-router-dom';
+import
+toast, (Toaster) from 'react-hot-toast';
+import ( EyeSlashIcon, EyeIcon) from @heroicons/react/24/outline';
+const Login = ( ) => f
+const {register, handleSubmit, formState: ( errors, isSubmitting}, } - useForm({defaultValues: {username:"*
+', password: "*}});.
+const [showPassword, setShowPassword] - useState(false);
+const
+navigate = useNavigate();
+const togglePasswordVisibility - () -› {
+setShowPassword(!showPassword);
+9.
+10
+11.
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22•
+23
+24
+25
+26
+27
+28
+29
+3Q3
+3
+3謝
+35
+• 36
+37
+38
+39
+40
+41
+412
+44
+45
+const onSubmit - async (data) -> {
+tryt
+const response - await axios.post(
+*#{apiBaseUrl}/terragate/v1/auth/login ,
+username: data.username, password: data.password
+headers:
+*Content-Type' :
+'application/json'
+7);
+if (response.status -== 200) (
+sessionStorage.setItem("isLoggedIn', 'true');
+toast, success ("Logged in successfully!"); setTimeout (() →> {
+navigate("/dashboard*, (replace: true});
+7, 1000 );
+Jelsel
+toast.error ('Login failed. Please try again');
+}catch (error) (
+1f (error, response) {
+const Login = ( )
+=> 1
+const onSubmit = async (data) => {•
+iferror-response) •1
+if(error.response.status===400)(
+toast. error ("Credentials are not correct. Please check your username and password.*);
+Jelse if(error.response.status === 500) {
+toast. error ('Server error. Please try again later');
+}
+else i
+toast. error ("An error occurred. Please try again")
+} else if(error.request) {
+toast. error "Network error. Please check your connection.")
+Jelsef
+toast. error ("An unexpected error occurred.");
+console.error ('Login error:', error);
+48
+49*
+50
+51
+52
+53
+54
+55
+56
+57
+58
+59
+60
+61
+62
+63
+64
+65
+66
+67
+68
+69
+70
+71
+72
+73
+87
+return
+<div className='min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 1g:px-8'>
+< Toaster position="top-center"
+reverseOrder-{false} /›
+‹div className="sm:mx-auto sm:w-full, sm:max-w-md">
+<h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900*>
+</h2>
+</div›
+‹div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+«div className="bg-white py-8 px-4 shadow sm:rounded-1g sm:px-10"›
+« form className="space-y-6" onSubmit-{handleSubmit(onSubmit) }›
+‹div>
+<label htmlFor="username"
+className-'block text-sm font-medium text-gray-700* ›Username‹/label>
+‹div className='mt-1'›
+<input id="username" name-'username' type-'text'
+// autocomplete="username"
+{...register ("username", ( required: 'Username is required',
+minLength: {
+value: 3,
+message: 'Username must be at least 3 characters',
+},
+maxLength: { value: 20,
+message: 'Username must not exceed 20 characters',
+3,
+3)} -
+className=(* appearance-none block w-full px-3 py-2 border ${
+errors username?* border-red-300': 'border-gray-600'
+7 rounded-m shadow-sm placeholder-gray-400 focus outline-none focus:ring-blue-500 foçus:border-blue-500 sm: text-sm* } ferrors. username 8& (
+<p className="mt-2 text-sm text-red-600">
+(errors. username.message}
+</p>
+)}
+</div>
+</div>
+‹div>
+‹ label
+htmlFor="password"
+className='block text-sm font-medium text-gray-700' >Password</label>
+{/* <div className="mt-1"> */}
+‹div className="relative">
+«input id="password"
+name='password
+type={showPassword? "text': 'password'} onChange=|(e) → setPassword(e. target.value)}
+{..register ("password", {
+required: 'Password is required,
+minLength: {
+value: 6,
+message: 'Password must be at least 6 characters', pattern: 1 value:/^ (?-.*[a-z]) (?--*[A-Z])(?=-*\d).+$/,
+message: "Password must contain uppercase, lowercase and numbers'
+172.18.2.57
+3)}
+className-(appearance-none block w-full px-3 py-2 border $ errors-password? "border-red-300': ' border-gray-600*
+} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus: border-blue-500 sm: text-sm* }
+/>
+<button
+
+type="button"
+
+className- absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover: text-gray-700
+
+onClick-{togglePasswordVisibility)//()> setShowPassword(!showPassword)
+
+{showPassword? (<EyeSlashIcon className-'h-5 w-5 text-gray-500' /> ):(
+
+<EyeIcon classlane-'h-5 w-5 text-gray-500' />)}
+
+</button>
+
+(errors.password && (
+
+<p className="mt-2 text-sm text-red-600">
+
+{errors.password.message)
+
+</p>
+
+134
+
+>
+
+139
+
+138
+
+139
+
+148
+
+141
+
+142
+
+143
+
+)}
+
+144
+
+</div>
+
+145
+
+</div>
+
+146
+
+147
+
+<div>
+
+148
+
+<button
+
+149
+
+150
+
+151
+
+152
+
+153
+
+154
+
+155
+
+156
+
+157
+
+158
+
+159
+
+</form>
+
+/div
+
+</div>
+
+160
+
+161);
+
+167 }
+
+</div>
+
+172.18.2.57
+
+type="submit"
+disabled-(isSubmitting)
+className("w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white
+bg-blue-600 hover:bg-blue-700 focus: outline-none focus:ring-2 focus: ring-offset-2 focus: ring-bluee-500
+${isSubmitting? 'opacity-70 cursor-not-allowed':""}]>
+Login
+</button>
+</div>
+
+export default Login;
